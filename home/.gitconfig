@@ -1,0 +1,29 @@
+[user]
+	name = Kyle Bush
+	email = Kyle@bushinc.com
+
+[init]
+	defaultBranch = master
+
+[core]
+	editor = nvim
+	autocrlf = input
+
+[pull]
+	rebase = false
+
+[push]
+	default = simple
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[merge]
+	conflictstyle = zdiff3
+
+[diff]
+	colorMoved = default
+
+[rerere]
+	enabled = true

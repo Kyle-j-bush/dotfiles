@@ -1,0 +1,46 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Local logs/cache
+*.log
+.cache/
+tmp/
+temp/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Never commit private home secrets if accidentally copied into repo
+home/.ssh/
+home/.gnupg/
+home/.aws/
+home/.azure/
+home/.kube/
+home/.docker/config.json
+home/.databrickscfg
+home/.netrc
+
+# OpenCode auth/secrets
+home/.config/opencode/auth.json
+home/.local/share/opencode/auth.json
+
+# Node / Python generated folders
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Power BI custom visual build output
+dist/
+.tmp/
+coverage/

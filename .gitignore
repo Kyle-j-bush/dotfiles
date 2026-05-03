@@ -1,17 +1,12 @@
-# OS/editor noise
+# OS/editor junk
 .DS_Store
 Thumbs.db
 *.swp
 *.swo
 *~
-
-# Local logs/cache
 *.log
-.cache/
-tmp/
-temp/
 
-# Secrets
+# Secrets / env files
 .env
 .env.*
 *.pem
@@ -20,7 +15,7 @@ temp/
 *.pfx
 secrets/
 
-# Never commit private home secrets if accidentally copied into repo
+# SSH / auth / cloud credentials
 home/.ssh/
 home/.gnupg/
 home/.aws/
@@ -31,16 +26,23 @@ home/.databrickscfg
 home/.netrc
 
 # OpenCode auth/secrets
+home/.local/share/opencode/
 home/.config/opencode/auth.json
-home/.local/share/opencode/auth.json
+.local/share/opencode/
+.config/opencode/auth.json
 
-# Node / Python generated folders
-node_modules/
-.venv/
+# Python / Node generated folders
 __pycache__/
 *.pyc
+.venv/
+node_modules/
 
-# Power BI custom visual build output
+# Neovim generated state/cache should NOT be in dotfiles
+home/.local/share/nvim/
+home/.local/state/nvim/
+home/.cache/nvim/
+
+# Build/test output
 dist/
-.tmp/
 coverage/
+.tmp/

@@ -1,0 +1,32 @@
+return {
+  {
+    "stevearc/oil.nvim",
+    lazy = false,
+    dependencies = {
+      { "nvim-mini/mini.icons", opts = {} },
+    },
+    keys = {
+      { "-", "<cmd>Oil<cr>", desc = "Open parent directory in Oil" },
+      { "<leader>fo", "<cmd>Oil<cr>", desc = "Open Oil file manager" },
+    },
+    opts = {
+      default_file_explorer = false,
+      columns = {
+        "icon",
+      },
+      delete_to_trash = true,
+      skip_confirm_for_simple_edits = false,
+      view_options = {
+        show_hidden = true,
+      },
+      keymaps = {
+        ["q"] = "actions.close",
+        ["<C-c>"] = "actions.close",
+        ["<CR>"] = "actions.select",
+        ["-"] = "actions.parent",
+        ["_"] = "actions.open_cwd",
+        ["g."] = "actions.toggle_hidden",
+      },
+    },
+  },
+}

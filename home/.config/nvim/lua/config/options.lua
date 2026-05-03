@@ -45,3 +45,15 @@ vim.opt.updatetime = 250
 
 -- Completion.
 vim.opt.completeopt = "menu,menuone,noselect"
+
+-- Disable providers I do not use.
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+
+-- Use zsh for Neovim terminal buffers when available.
+if vim.fn.executable("zsh") == 1 then
+  vim.opt.shell = "zsh"
+end
+
+-- Dedicated Python provider for Neovim.
+vim.g.python3_host_prog = vim.fn.expand("~/.local/share/nvim/python3-venv/bin/python")

@@ -86,6 +86,4 @@ map("n", "<leader>fM", function()
 end, { desc = "Mini Files CWD" })
 
 -- Quality-of-life.
-map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save file" })
-map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit window" })
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlight" })

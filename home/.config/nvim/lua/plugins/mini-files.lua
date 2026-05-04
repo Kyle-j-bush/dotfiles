@@ -57,5 +57,26 @@ return {
         trim_right = ">",
       },
     },
+
+    config = function(_, opts)
+      require("mini.files").setup(opts)
+
+      -- Add custom mapping to change cwd from within mini.files
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "MiniFilesBufferCreate",
+        callback = function(args)
+          local buf_id = args.data.buf_id
+          vim.keymap.set("n", "g<leader>", function()
+            local files = require("mini.files")
+            local cur_entry = files.get_fs_entry()
+            if cur_entry and cur_entry.fs_type == "directory" then
+              vim.fn.chdir(cur_entry.path)
+              vim.notify("CWD changed to: " .. cur_entry.path, vim.log.levels.INFO)
+              files.close()
+            end
+          end, { buffer = buf_id, desc = "Change CWD to current directory" })
+        end,
+      })
+    end,
   },
 }

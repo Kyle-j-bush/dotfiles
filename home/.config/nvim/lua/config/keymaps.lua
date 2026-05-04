@@ -85,5 +85,12 @@ map("n", "<leader>fM", function()
   mini_files.open(vim.uv.cwd(), false)
 end, { desc = "Mini Files CWD" })
 
+-- Buffer/tab navigation.
+map("n", "<leader>bp", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
+map("n", "<leader>bn", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
+map("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
+map("n", "<leader>bD", "<cmd>BufferLinePickClose<cr>", { desc = "Pick buffer to close" })
+map("n", "<leader>bb", snacks_buffers, { desc = "Switch buffer" })
+
 -- Quality-of-life.
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlight" })

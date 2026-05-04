@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent_gateway_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agent_gateway_user
+      POSTGRES_PASSWORD: agent_gateway_password
+      POSTGRES_DB: agent_gateway_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - agent_gateway_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  agent_gateway_postgres_data:

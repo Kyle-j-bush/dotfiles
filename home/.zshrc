@@ -29,3 +29,40 @@ fi
 alias v='nvim'
 alias vim='nvim'
 alias oc='opencode'
+
+# nvm / Node.js
+export NVM_DIR="$HOME/.nvm"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  source "$NVM_DIR/nvm.sh"
+fi
+
+if [[ -s "$NVM_DIR/bash_completion" ]]; then
+  source "$NVM_DIR/bash_completion"
+fi
+
+# tmux
+alias t='tmux'
+alias ta='tmux attach -t'
+alias tl='tmux list-sessions'
+alias tn='tmux new -s'
+alias tk='tmux kill-session -t'
+
+# Attach to main tmux session or create it.
+alias tm='tmux new-session -A -s main'
+
+# tmux
+alias t='tmux'
+alias ta='tmux attach -t'
+alias tl='tmux list-sessions'
+alias tn='tmux new -s'
+alias tk='tmux kill-session -t'
+
+# Attach to main tmux session or create it.
+alias tm='tmux new-session -A -s main'
+
+# Enables:
+#   z <dir>  -> smart directory jump
+#   zi       -> interactive directory jump using fzf
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi

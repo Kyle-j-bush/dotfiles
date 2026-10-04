@@ -29,6 +29,7 @@ fi
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
 
 alias v=nvim
+alias la='ls -la'
 alias lg=lazygit
 alias gs='git status --short --branch'
 alias gd='git diff'

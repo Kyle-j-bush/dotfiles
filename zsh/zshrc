@@ -1,0 +1,55 @@
+# No framework, no slow language-runtime managers at shell startup.
+typeset -U path PATH
+[[ -d /opt/homebrew/bin ]] && path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
+export PNPM_HOME="$HOME/.local/share/pnpm"
+path=("$HOME/.local/bin" "$HOME/.local/share/devtools/node/node_modules/.bin" "$PNPM_HOME/bin" "$PNPM_HOME" $path)
+export EDITOR=nvim VISUAL=nvim
+export PAGER=less
+export LESS='-FRX'
+export HISTFILE="$HOME/.zsh_history"
+HISTSIZE=100000
+SAVEHIST=100000
+setopt EXTENDED_HISTORY SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE INTERACTIVE_COMMENTS AUTO_CD
+bindkey -e
+autoload -Uz compinit
+# compinit reuses its dump and still checks completion-path security.
+compinit
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+if (( $+commands[fzf] )); then
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git --exclude node_modules --exclude .venv'
+  export FZF_DEFAULT_OPTS='--height=45% --layout=reverse --border --info=inline'
+  source <(fzf --zsh)
+fi
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+
+alias v=nvim
+alias lg=lazygit
+alias gs='git status --short --branch'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -20'
+alias k=kubectl
+alias tf=terraform
+alias p=pnpm
+alias t=tmux-sessionizer
+mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
+project-picker() {
+  zle -I
+  command tmux-sessionizer
+  zle reset-prompt
+}
+zle -N project-picker
+bindkey '^F' project-picker
+
+# Native, fast prompt: no synchronous Git subprocess on every keystroke/prompt.
+setopt PROMPT_SUBST
+PROMPT='%F{blue}%~%f %(?.%F{green}.%F{red})❯%f '
+[[ -n ${SSH_CONNECTION:-} ]] && PROMPT='%F{yellow}%n@%m%f '"$PROMPT"
+# Host-specific settings/credentials stay untracked and load last.
+[[ -f "$HOME/.config/zsh/local.zsh" ]] && source "$HOME/.config/zsh/local.zsh"
+# Deliberately do NOT auto-attach: Ctrl-f chooses a project; SSH stays predictable.

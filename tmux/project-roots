@@ -1,0 +1,5 @@
+# One parent directory per line; no shell evaluation. Missing roots are skipped.
+# Direct children are projects. Add another parent for nested organization folders.
+~/code
+~/work
+~/labs

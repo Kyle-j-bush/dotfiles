@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# Bash 3.2-compatible. Requires fd, fzf, tmux. No eval or shell-interpolated paths.
+# shellcheck disable=SC2088 # Literal ~/ is the portable identity/display format.
+set -euo pipefail
+
+die() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+valid_path() {
+  case "$1" in *$'\n'* | *$'\t'* | *$'\r'*) return 1 ;; esac
+}
+canonical() {
+  [[ -d "$1" ]] || die "Not a directory: $1"
+  (cd -- "$1" && pwd -P)
+}
+session_name() {
+  local dir=$1 slug identity sum
+  slug=$(printf '%s' "${dir##*/}" | LC_ALL=C tr -cs 'A-Za-z0-9_-' '-' | sed 's/^-*//;s/-*$//' | cut -c1-40)
+  [[ -n "$slug" ]] || slug=project
+  # Home-relative identity survives a username change when reproducing dotfiles.
+  identity=$dir
+  [[ "$dir" == "$HOME/"* ]] && identity="~/${dir#"$HOME/"}"
+  if command -v sha256sum >/dev/null; then
+    sum=$(printf '%s' "$identity" | sha256sum)
+  elif command -v shasum >/dev/null; then
+    sum=$(printf '%s' "$identity" | shasum -a 256)
+  else
+    die 'Missing sha256sum (Linux) or shasum (macOS).'
+  fi
+  printf '%s-%s\n' "$slug" "${sum:0:12}"
+}
+session_id() {
+  # Resolve through a pane target: set-option's session target handling differs
+  # across tmux versions. Stable $IDs avoid prefix ambiguity for every action.
+  tmux display-message -p -t "=$1:" '#{session_id}'
+}
+activate_session() {
+  local target=$1
+  if [[ -n ${TMUX:-} ]]; then
+    tmux switch-client -t "$target"
+  else
+    exec tmux attach-session -t "$target"
+  fi
+}
+
+mode=pick
+if [[ ${1:-} == --name ]]; then
+  [[ $# == 2 ]] || die 'Usage: tmux-sessionizer --name DIRECTORY'
+  dir=$(canonical "$2")
+  valid_path "$dir" || die 'Tabs/newlines in project paths are not supported.'
+  session_name "$dir"
+  exit
+elif [[ ${1:-} == --list ]]; then
+  [[ $# == 1 ]] || die 'Usage: tmux-sessionizer --list'
+  mode=list
+elif [[ $# -gt 1 ]]; then
+  die 'Usage: tmux-sessionizer [DIRECTORY | --list | --name DIRECTORY]'
+elif [[ $# == 1 ]]; then
+  mode=direct
+fi
+
+command -v tmux >/dev/null || die 'Missing dependency: tmux'
+
+if [[ $mode == direct ]]; then
+  selected=$(canonical "$1")
+else
+  command -v fd >/dev/null || die 'Missing dependency: fd (on Debian, install fd-find and link fdfind as fd)'
+  command -v fzf >/dev/null || die 'Missing dependency: fzf'
+  roots=()
+  config=${TMUX_PROJECT_ROOTS_FILE:-${XDG_CONFIG_HOME:-$HOME/.config}/tmux/project-roots}
+  if [[ -f "$config" ]]; then
+    while IFS= read -r root || [[ -n "$root" ]]; do
+      [[ -z "$root" || "$root" == \#* ]] && continue
+      case "$root" in '~') root=$HOME ;; '~/'*) root="$HOME/${root#\~/}" ;; esac
+      [[ "$root" == /* ]] || die "Project root must be absolute or ~/relative: $root"
+      [[ -d "$root" ]] && roots+=("$root")
+    done <"$config"
+  else
+    for root in "$HOME/code" "$HOME/work" "$HOME/labs"; do
+      [[ -d "$root" ]] && roots+=("$root")
+    done
+  fi
+  depth=${TMUX_PROJECT_DEPTH:-1}
+  [[ "$depth" =~ ^[1-9][0-9]*$ ]] || die 'TMUX_PROJECT_DEPTH must be a positive integer.'
+  tmp=$(mktemp -d "${TMPDIR:-/tmp}/tmux-sessionizer.XXXXXX")
+  trap 'rm -f "$tmp/paths" "$tmp/records" "$tmp/choice"; rmdir "$tmp"' EXIT
+  : >"$tmp/paths"
+  : >"$tmp/records"
+  project_roots=()
+  for root in ${roots[@]+"${roots[@]}"}; do
+    root=$(canonical "$root")
+    project_roots+=("$root")
+    fd --type d --hidden --max-depth "$depth" --absolute-path --print0 \
+      --exclude .git --exclude node_modules --exclude .venv --exclude .terraform \
+      --exclude .cache --exclude dist --exclude build . "$root" >>"$tmp/paths"
+  done
+  # Canonicalize symlinks and de-duplicate without requiring GNU sort -z.
+  seen=()
+  while IFS= read -r -d '' path; do
+    path=$(canonical "$path")
+    valid_path "$path" || continue
+    is_root=false
+    for project_root in ${project_roots[@]+"${project_roots[@]}"}; do
+      [[ "$path" == "$project_root" ]] && {
+        is_root=true
+        break
+      }
+    done
+    $is_root && continue
+    duplicate=false
+    for existing in ${seen[@]+"${seen[@]}"}; do
+      [[ "$existing" == "$path" ]] && {
+        duplicate=true
+        break
+      }
+    done
+    $duplicate && continue
+    seen+=("$path")
+    label=$path
+    [[ "$path" == "$HOME/"* ]] && label="~/${path#"$HOME/"}"
+    name=$(session_name "$path")
+    mark=' '
+    tmux has-session -t "=$name" 2>/dev/null && mark='*'
+    printf '%s %s\tpath\t%s\0' "$mark" "$label" "$path" >>"$tmp/records"
+  done <"$tmp/paths"
+  # Include all running sessions, including projects moved/deleted or outside roots.
+  while IFS= read -r name; do
+    [[ -n "$name" ]] || continue
+    printf '* session: %s\tsession\t%s\0' "$name" "$name" >>"$tmp/records"
+  done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null || true)
+  if [[ $mode == list ]]; then
+    tr '\0' '\n' <"$tmp/records" | cut -f1
+    exit
+  fi
+  [[ -s "$tmp/records" ]] || die "No projects or sessions found. Add projects under ~/code, ~/work, ~/labs or edit $config."
+  # Set options last and clear inherited defaults/commands to keep record parsing safe.
+  if ! FZF_DEFAULT_OPTS='' FZF_DEFAULT_OPTS_FILE='' FZF_DEFAULT_COMMAND='' fzf \
+    --read0 --print0 --delimiter=$'\t' --with-nth=1 --layout=reverse --border \
+    --prompt='project > ' --header='* running · Enter switch/create · Esc cancel' \
+    <"$tmp/records" >"$tmp/choice"; then
+    exit 0
+  fi
+  IFS= read -r -d '' record <"$tmp/choice" || exit 0
+  rest=${record#*$'\t'}
+  kind=${rest%%$'\t'*}
+  selected=${rest#*$'\t'}
+  if [[ $kind == session ]]; then
+    name=$selected
+    activate_session "$(session_id "$name")"
+    exit
+  fi
+fi
+
+valid_path "$selected" || die 'Tabs/newlines in project paths are not supported.'
+name=$(session_name "$selected")
+if tmux has-session -t "=$name" 2>/dev/null; then
+  target=$(session_id "$name")
+  stored=$(tmux show-option -t "$target" -qv @project_dir || true)
+  [[ -z "$stored" || "$stored" == "$selected" ]] || die "Session identity collision: $name ($stored vs $selected)"
+else
+  # Exact targets prevent prefix-matching mistakes; concurrent creation is harmless.
+  tmux new-session -d -s "$name" -n editor -c "$selected" 2>/dev/null ||
+    tmux has-session -t "=$name" 2>/dev/null ||
+    die "Could not create session: $name"
+fi
+target=$(session_id "$name")
+stored=$(tmux show-option -t "$target" -qv @project_dir || true)
+[[ -z "$stored" || "$stored" == "$selected" ]] || die "Session identity collision: $name ($stored vs $selected)"
+tmux set-option -t "$target" @project_dir "$selected"
+activate_session "$target"

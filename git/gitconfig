@@ -1,0 +1,21 @@
+[init]
+  defaultBranch = main
+[core]
+  editor = nvim
+[fetch]
+  prune = true
+[pull]
+  ff = only
+[push]
+  autoSetupRemote = true
+[diff]
+  algorithm = histogram
+[merge]
+  conflictStyle = zdiff3
+[rerere]
+  enabled = true
+[credential "https://github.com"]
+  helper =
+  helper = !gh auth git-credential
+[include]
+  path = ~/.config/git/local.gitconfig

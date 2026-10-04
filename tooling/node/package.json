@@ -1,0 +1,18 @@
+{
+  "name": "terminal-language-tools",
+  "private": true,
+  "description": "Fallback editor CLIs; project-local dependencies still take precedence",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "bash-language-server": "5.8.1",
+    "dockerfile-language-server-nodejs": "0.15.0",
+    "markdownlint-cli2": "0.23.3",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "typescript-language-server": "6.0.1",
+    "vscode-langservers-extracted": "4.10.0",
+    "yaml-language-server": "1.24.0"
+  }
+}

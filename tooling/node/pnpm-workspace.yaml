@@ -1,0 +1,4 @@
+# core-js's postinstall is informational, not required for these CLIs.
+# Deny it explicitly rather than blanket-approving third-party install scripts.
+allowBuilds:
+  core-js: false

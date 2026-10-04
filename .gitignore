@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+**/local.*
+**/secrets/
+**/resurrect/
+**/shada/
+**/swap/
+**/undo/
+**/node_modules/

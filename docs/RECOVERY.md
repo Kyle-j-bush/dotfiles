@@ -55,7 +55,7 @@ manually. Plugins do not synchronize sessions between machines.
 
 ## Neovim recovery
 
-- Regularly **write files** (`Space w`). Git commits and backups protect saved
+- Regularly **write files** (`Ctrl-s`). Git commits and backups protect saved
   content; tmux snapshots do not protect editor contents.
 - Persistent undo is enabled under Neovim's private state directory, so saved
   files retain useful undo history across editor restarts.

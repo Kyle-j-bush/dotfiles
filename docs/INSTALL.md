@@ -24,7 +24,7 @@ brew tap hashicorp/tap
 brew tap terraform-linters/tap
 # Newer Homebrew may require this explicit, formula-scoped trust decision:
 brew trust --formula hashicorp/tap/terraform
-brew install git gh tmux neovim fzf ripgrep fd zoxide lazygit node pnpm \
+brew install git gh tmux neovim fzf ripgrep fd zoxide lazygit starship node pnpm \
   uv ruff shellcheck shfmt stylua lua-language-server marksman tree-sitter-cli \
   hashicorp/tap/terraform terraform-ls hadolint jq yq \
   docker docker-compose colima kubernetes-cli kubectx helm k9s
@@ -92,6 +92,7 @@ may store a token in a file if no keyring exists; never add that file to dotfile
 | `tmux/tmux.conf` | `~/.tmux.conf` |
 | `tmux/project-roots` | `~/.config/tmux/project-roots` |
 | `nvim/` | `~/.config/nvim` |
+| `starship/starship.toml` | `~/.config/starship.toml` |
 | `ghostty/config` | `~/.config/ghostty/config` |
 | `zsh/zshrc`, `zsh/zprofile` | `~/.zshrc`, `~/.zprofile` |
 | `git/gitconfig` | `~/.gitconfig` |
@@ -125,7 +126,7 @@ mkdir -p ~/.local/bin
 ln -s "$(command -v fdfind)" ~/.local/bin/fd
 ```
 
-Install current Neovim, GitHub CLI, lazygit, zoxide, uv, Node/pnpm, shfmt, StyLua,
+Install current Neovim, GitHub CLI, lazygit, Starship, zoxide, uv, Node/pnpm, shfmt, StyLua,
 Lua LS, Marksman, Terraform/terraform-ls, tflint, hadolint and tree-sitter-cli via
 trusted upstream releases, your distro, or Homebrew on Linux. Install Python/JS
 tools with the **same `uv tool`/`pnpm install --frozen-lockfile` commands above**; Ruff can be
@@ -145,7 +146,9 @@ exec zsh -l
 
 `--plugins` preserves the normal tmux server; it clones TPM/resurrect/continuum
 directly rather than starting a throwaway default server that could trigger
-automatic restoration.
+automatic restoration. It bootstraps LazyVim's locked plugins and installs the
+configured Treesitter parsers. Mason is disabled; install editor tools with the
+Homebrew/uv/pnpm instructions above (or their Linux equivalents).
 
 ## Verify the setup
 
@@ -153,6 +156,7 @@ automatic restoration.
 shellcheck install.sh scripts/tmux-sessionizer
 zsh -n zsh/zshrc zsh/zprofile
 stylua --check nvim
+starship explain
 nvim --headless '+checkhealth' '+qa'
 tmux-sessionizer --list
 ```
@@ -169,11 +173,10 @@ routing or clipboard access.
 
 - Neovim plugins: the committed Lazy lockfile pins exact commits. `:Lazy restore`
   replays it; `:Lazy update` changes it. Review diffs and test before committing.
-- Treesitter: current **main** rewritten API requires Neovim 0.12. Do not copy
-  old `require('nvim-treesitter.configs').setup` examples into this setup.
-  `:TSBootstrap` installs the curated set explicitly; `:TSUpdate` follows plugin
-  parser revisions. First install compiles parsers; ordinary startup does not.
-- Blink: stable 1.x, Lua fuzzy implementation, no Rust build/binary download.
+- LazyVim and its extras are tracked through the committed `lazy-lock.json`.
+  Mason is disabled to keep command-line language tools shared with the shell.
+- Treesitter uses LazyVim's current **main** API; configured parsers are installed
+  during `--plugins`. `:TSUpdate` updates parser revisions after plugin changes.
 - tmux: TPM manages a tiny plugin set. `tmux/plugins.lock` records the commits
   used in the initial tested installation, but TPM itself does not enforce it.
   For exact replay, checkout each recorded SHA in `~/.tmux/plugins/<name>` after
@@ -184,8 +187,8 @@ routing or clipboard access.
   use project lockfiles/container images; don't claim Homebrew is hermetic.
 - Update formatters as a team and pin them per project to prevent noisy diffs.
 
-The shell intentionally has no enormous completion cache, autosuggestions,
-syntax-highlighting framework, or Starship dependency. These can be added later
-only after measuring a real usability need. Installed tools need not all run at
-startup. Keep work and production kube contexts visible in command output and
-confirm target context before making changes; do not create dangerous shortcuts.
+The shell uses zsh's native completion and Starship's prompt; it has no large
+shell framework or autosuggestions/highlighting plugins. Installed tools need not
+all run at startup. Keep work and production kube contexts visible in command
+output and confirm target context before making changes; do not create dangerous
+shortcuts.

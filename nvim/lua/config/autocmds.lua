@@ -14,6 +14,7 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.bo.softtabstop = 4
   end,
 })
+vim.treesitter.language.register('json5', 'jsonc')
 vim.api.nvim_create_autocmd('BufReadPost', {
   group = group,
   callback = function(event)
@@ -30,17 +31,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
     if not client then
       return
     end
-    local function map(lhs, rhs, desc)
-      vim.keymap.set('n', lhs, rhs, { buffer = event.buf, desc = desc })
-    end
-    map('gd', vim.lsp.buf.definition, 'Definition')
-    map('gD', vim.lsp.buf.declaration, 'Declaration')
-    map('gi', vim.lsp.buf.implementation, 'Implementation')
-    map('gy', vim.lsp.buf.type_definition, 'Type definition')
-    map('K', vim.lsp.buf.hover, 'Hover documentation')
-    map('<leader>cr', vim.lsp.buf.rename, 'Rename symbol')
-    map('<leader>ca', vim.lsp.buf.code_action, 'Code action')
-    map('<leader>cs', vim.lsp.buf.signature_help, 'Signature help')
     if client.name == 'ruff' then
       client.server_capabilities.hoverProvider = false -- basedpyright owns hover/types.
     end

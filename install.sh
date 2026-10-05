@@ -56,6 +56,7 @@ activate() {
   link "$ROOT/ghostty/config" "$HOME/.config/ghostty/config"
   link "$ROOT/zsh/zshrc" "$HOME/.zshrc"
   link "$ROOT/zsh/zprofile" "$HOME/.zprofile"
+  link "$ROOT/starship/starship.toml" "$HOME/.config/starship.toml"
   link "$ROOT/git/gitconfig" "$HOME/.gitconfig"
   link "$ROOT/scripts/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
   link "$ROOT/tooling/node" "$HOME/.local/share/devtools/node"

@@ -1,20 +1,26 @@
 local map = vim.keymap.set
 map('n', '<Esc>', '<cmd>nohlsearch<cr>', { desc = 'Clear search highlight' })
-map('n', '<leader>w', '<cmd>update<cr>', { desc = 'Write buffer' })
-map('n', '<leader>q', '<cmd>confirm quit<cr>', { desc = 'Quit window' })
-map('n', '<leader>bd', '<cmd>confirm bdelete<cr>', { desc = 'Delete buffer' })
-map('n', '[b', '<cmd>bprevious<cr>', { desc = 'Previous buffer' })
-map('n', ']b', '<cmd>bnext<cr>', { desc = 'Next buffer' })
-map('n', '<leader>e', '<cmd>Oil<cr>', { desc = 'Explore directory' })
-map('n', '-', '<cmd>Oil<cr>', { desc = 'Explore parent directory' })
 map({ 'n', 'x' }, '<leader>y', '"+y', { desc = 'Copy to system clipboard' })
 map('n', '<leader>Y', '"+yy', { desc = 'Copy line to system clipboard' })
 map({ 'n', 'x' }, '<leader>p', '"+p', { desc = 'Paste system clipboard (local)' })
-map('n', '<leader>cd', vim.diagnostic.open_float, { desc = 'Line diagnostics' })
-map('n', '<leader>cq', vim.diagnostic.setqflist, { desc = 'Diagnostics to quickfix' })
-map('n', '<leader>ch', function()
-  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
-end, { desc = 'Toggle inlay hints' })
-map('n', '[q', '<cmd>cprevious<cr>', { desc = 'Previous quickfix' })
-map('n', ']q', '<cmd>cnext<cr>', { desc = 'Next quickfix' })
-map('n', '<leader>co', '<cmd>copen<cr>', { desc = 'Open quickfix' })
+
+for key, direction in pairs({ h = 'Left', j = 'Down', k = 'Up', l = 'Right' }) do
+  map(
+    'n',
+    '<C-' .. key .. '>',
+    '<cmd>TmuxNavigate' .. direction .. '<cr>',
+    { desc = 'Navigate ' .. direction }
+  )
+  map(
+    'i',
+    '<C-' .. key .. '>',
+    '<Esc><cmd>TmuxNavigate' .. direction .. '<cr>',
+    { desc = 'Navigate ' .. direction }
+  )
+  map(
+    't',
+    '<C-' .. key .. '>',
+    '<C-\\><C-n><cmd>TmuxNavigate' .. direction .. '<cr>',
+    { desc = 'Navigate ' .. direction }
+  )
+end

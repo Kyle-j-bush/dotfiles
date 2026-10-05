@@ -1,8 +1,8 @@
 # Terminal development environment
 
-A keyboard-first, deliberately small **Ghostty → tmux → Neovim** environment for
-Apple Silicon macOS and modern Linux. tmux is the primary multiplexer. This is a
-complete configuration, not a framework layered over another editor distribution.
+A keyboard-first **Ghostty → tmux → LazyVim** environment for Apple Silicon macOS
+and modern Linux. tmux is the primary multiplexer; LazyVim supplies the Neovim
+distribution, with local overlays for language tools and terminal navigation.
 
 ## Start here
 
@@ -48,11 +48,11 @@ Git identity is private, per-machine: see [installation](docs/INSTALL.md).
 5. **SSH adds a second machine boundary.** Prefer a direct SSH connection to remote
    tmux. Nested multiplexers need an explicit handoff, not more navigation plugins.
 6. **Too much automatic discovery becomes latency and surprise.** No recursive
-   walk of `$HOME`, no automatic editor cwd changes, no Git prompt subprocesses,
-   no runtime-manager initialization, no auto-install of parsers at editor startup.
-7. **Fewer plugins does not mean fewer executable tools.** Language servers,
-   formatters, and linters should also work from CI and the shell. They are installed
-   outside Neovim; project configuration remains the source of truth.
+   walk of `$HOME`, no automatic editor cwd changes, and no runtime-manager setup.
+   Starship handles prompt styling; LazyVim manages editor plugins and parsers.
+7. **Editor plugins are not language tools.** Language servers, formatters, and
+   linters are installed with Homebrew, uv, and pnpm so they work outside Neovim;
+   project configuration remains the source of truth.
 
 ## Responsibility boundaries
 
@@ -60,10 +60,10 @@ Git identity is private, per-machine: see [installation](docs/INSTALL.md).
 |---|---|---|
 | Ghostty | Font/rendering, OS windows, Option key, Command copy/paste | Project tabs, splits, sessions |
 | tmux | Project sessions, task windows, process panes, terminal scrollback, persistence | Editing, repository file search |
-| Neovim | Editing, code splits, LSP, diagnostics, hunks, buffer/file search | Background services, terminal layouts, full Git UI |
-| zsh | Commands, history, completion, PATH, minimal prompt | Automatic tmux attach, a plugin framework |
-| fzf | Fast shell/project picking; fzf-lua's search engine | Another project database |
-| fd / rg | File discovery / text search | Persistent indexing or hidden global state |
+| Neovim + LazyVim | Editing, code splits, LSP, diagnostics, hunks, Snacks file/search picker | Background services, terminal layouts, full Git UI |
+| zsh + Starship | Commands, history, completion, PATH, styled prompt | Automatic tmux attach, a shell framework |
+| fzf | Fast shell/project picking | Another project database |
+| fd / rg | File discovery / text search for the shell and editor picker | Persistent indexing or hidden global state |
 | zoxide | Frequently visited shell directories (`z`, `zi`) | tmux session identity |
 | lazygit | Staging review, branches, commits, conflicts, history, interactive rebase | Editing/LSP |
 | Git / gh | Authoritative VCS operations / GitHub PRs, issues, checks | Editor navigation |
@@ -119,6 +119,13 @@ selectable until you close it. Existing project entries and a separate running
 session section can point at the same session: this intentional duplication makes
 ad-hoc sessions recoverable without maintaining a second project registry.
 
+## Shell prompt
+
+Starship provides a compact two-line prompt with a truncated working directory,
+Git branch/status, and long-command duration. Over SSH it also shows the remote
+user and host. Edit `starship/starship.toml`; the prompt uses ordinary text/color
+styles and does not require a Nerd Font.
+
 ## Chosen plugins and tradeoffs
 
 ### tmux: three repositories
@@ -134,40 +141,24 @@ copy-pipe + OSC 52 already do the job), tmux themes, tmux session managers, and 
 TPM copy of vim-tmux-navigator (its short tmux binding recipe is already in our
 config). The navigator plugin is installed on the **Neovim side** only.
 
-### Neovim: focused components
+### Neovim: LazyVim distribution with local overlays
 
 | Plugin | Responsibility |
 |---|---|
+| LazyVim | Distribution defaults, Snacks picker, completion, UI, LSP keymaps, Git signs |
 | lazy.nvim | Plugin lifecycle and committed `lazy-lock.json` |
-| nvim-lspconfig | Maintained server definitions; native `vim.lsp.config/enable` |
-| blink.cmp **v1 stable** | Completion; Lua matcher avoids platform binaries |
-| friendly-snippets | Snippet data; native `vim.snippet` expands it |
-| nvim-treesitter **main API** | Parser/query installation; native highlighting/folds |
-| fzf-lua | One finder for files, rg, buffers, symbols, diagnostics, histories |
-| oil.nvim | Edit directory contents like a buffer; no persistent tree/sidebar |
-| conform.nvim | One deterministic formatting pipeline, on-save/manual |
-| nvim-lint | Only diagnostics missing from LSP: hadolint, markdownlint, manual tflint |
-| gitsigns.nvim | Hunk signs/stage/preview/blame/diff for the current editor buffer |
-| mini.surround | Surround add/delete/replace |
-| mini.ai | Small, useful argument/function-call/bracket/quote text objects |
-| mini.statusline | Minimal status; no extra shell Git queries |
-| which-key.nvim | Delayed discoverability, not an always-on dashboard |
+| LazyVim language extras | Python, Docker, JSON, Terraform, YAML and related editor support |
+| nvim-lspconfig | Server definitions, configured to use external Homebrew/uv/pnpm tools |
+| conform.nvim | Formatting on save and explicit formatting; LSP formatting fallback disabled |
+| nvim-lint | Hadolint/markdownlint diagnostics and manually triggered TFLint |
 | vim-tmux-navigator | Neovim ↔ tmux Ctrl-hjkl crossing |
+| mini.ai / mini.surround / mini.files | Text objects, surround editing, and editable directory browser |
 
-Oil, statusline, navigator, and Treesitter load eagerly for correct early behavior;
-other plugins load on events/keys. Opening code loads LSP and its completion
-capabilities intentionally; do not contort dependencies to save milliseconds at
-the cost of missing capabilities. Use `:Lazy profile` to measure actual startup.
-
-**Do not add:** Telescope (duplicates fzf-lua), nvim-cmp (duplicates Blink), LuaSnip
-(native snippets suffice), Mason/mason-lspconfig (duplicates Brew/uv/pnpm),
-null-ls/none-ls (duplicates Conform/lint/LSP), Comment.nvim/mini.comment (native
-`gc`/`gcc`), Trouble (fzf diagnostics + native quickfix), lazygit.nvim (tmux popup),
-Fugitive/Neogit/Diffview for this baseline (lazygit + native Git suffice),
-nvim-tree/neo-tree (Oil + file finder), lualine (mini.statusline), terminal managers
-(tmux), buffer tabs, dashboards, or a Neovim session plugin by default. Do not add
-a generic lint runner for Ruff, ESLint, or ShellCheck: their LSP paths already emit
-those diagnostics. Snippets and diagnostics use native editor mechanisms.
+Mason is disabled: the installer-managed tools remain usable from the shell and
+project tasks. Use `:Lazy profile` to measure startup and `:Lazy restore` to replay
+the committed plugin lockfile. `Space ff` opens file search; **Space fm** opens
+`mini.files` to browse and edit directories. `mini.map` is a separate code overview
+plugin, not the file manager.
 
 ## Git workflow
 
@@ -197,13 +188,14 @@ remembers resolutions. No personal Git identity or tokens are committed.
 ├── tmux/{tmux.conf,project-roots}
 ├── zsh/{zshrc,zprofile}
 ├── scripts/tmux-sessionizer
+├── starship/starship.toml
 ├── tooling/node/{package.json,pnpm-lock.yaml,pnpm-workspace.yaml}
 ├── nvim/
 │   ├── init.lua
 │   ├── lazy-lock.json
 │   └── lua/
 │       ├── config/{options,keymaps,autocmds,lazy}.lua
-│       └── plugins/{editor,lsp,completion,git,treesitter,ui}.lua
+│       └── plugins/{editor,lsp,completion,treesitter}.lua
 └── docs/{INSTALL,CHEATSHEET,LANGUAGES,REMOTE,RECOVERY}.md
 ```
 
@@ -216,7 +208,6 @@ unfamiliar configurations. Private overrides live outside this public repository
 undo/swap/clipboard data, and project `.env` files out of Git.
 
 Updates are deliberate: review `brew outdated`, `uv tool upgrade basedpyright`,
-and `pnpm --dir tooling/node outdated`; run `:Lazy update`, then `:TSUpdate`, verify, and commit
-the changed lockfile. For an exact plugin replay use `:Lazy restore` (the installer
-uses sync for initial bootstrap). TPM: `prefix U`. See installation for tmux plugin
-commit recording. No auto-update checker interrupts the workday.
+and `pnpm --dir tooling/node outdated`; run `:Lazy update`, review the lockfile,
+and run `:TSUpdate` after parser changes. For an exact plugin replay use `:Lazy restore`.
+TPM: `prefix U`. No auto-update checker interrupts the workday.

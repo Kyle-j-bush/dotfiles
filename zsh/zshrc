@@ -47,10 +47,13 @@ project-picker() {
 zle -N project-picker
 bindkey '^F' project-picker
 
-# Native, fast prompt: no synchronous Git subprocess on every keystroke/prompt.
-setopt PROMPT_SUBST
-PROMPT='%F{blue}%~%f %(?.%F{green}.%F{red})❯%f '
-[[ -n ${SSH_CONNECTION:-} ]] && PROMPT='%F{yellow}%n@%m%f '"$PROMPT"
+# Starship styles the prompt; keep a small fallback for machines without it.
+if (( $+commands[starship] )); then
+  eval "$(starship init zsh)"
+else
+  PROMPT='%F{blue}%~%f %(?.%F{green}.%F{red})❯%f '
+  [[ -n ${SSH_CONNECTION:-} ]] && PROMPT='%F{yellow}%n@%m%f '"$PROMPT"
+fi
 # Host-specific settings/credentials stay untracked and load last.
 [[ -f "$HOME/.config/zsh/local.zsh" ]] && source "$HOME/.config/zsh/local.zsh"
 # Deliberately do NOT auto-attach: Ctrl-f chooses a project; SSH stays predictable.

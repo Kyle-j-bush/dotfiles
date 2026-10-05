@@ -1,8 +1,8 @@
 # Keyboard cheatsheet
 
-**tmux prefix = Ctrl-a. Neovim leader = Space.** Lowercase actions, uppercase
-variants; `f` = find, `c` = code, `g` = Git hunks, `b` = buffers. `[`/`]` traverse.
-OS Command keys stay in Ghostty; terminal/editor bindings use Control/Meta.
+**tmux prefix = Ctrl-a. LazyVim leader = Space.** LazyVim's which-key popup shows
+available bindings after pressing Space. OS Command keys stay in Ghostty;
+terminal/editor bindings use Control/Meta.
 
 ## Projects and shell
 
@@ -54,22 +54,23 @@ is normally Fn-Up; **prefix [** is usually easier.
 
 | Key | Action |
 |---|---|
-| Space ff | Project files (respects ignores) |
-| Space fr | Recent files in cwd |
-| Space fb | Open buffers |
-| Space fg | Live rg text search |
-| Space f/ | Current-buffer line search; native `/` still works |
-| Space fv | Git files |
-| Space fs / fS | Document / workspace symbols |
-| Space fd | Workspace diagnostics |
-| Space fc / fh | Editor command history / help tags |
-| `gr` | References picker; native `grr` also available |
-| Space e or `-` | Oil parent directory; Enter opens, `-` goes up |
-| Oil: edit names, `:w` | Review and perform rename/move/delete operations |
+| Space ff | Find files with LazyVim's Snacks picker |
+| Space fF | Find files from the current working directory |
+| Space fg | Find Git-tracked files |
+| Space fr / fR | Recent files / recent files in cwd |
+| Space fb or Space , | Open buffers |
+| Space / | Search text in the project root |
+| Space sg / sG | Search project text / current directory |
+| Space e / fe | Snacks file explorer at project root; Space E uses cwd |
+| **Space fm** | Browse/manage files with mini.files (current file's directory) |
+| Space fM | Open mini.files at the working directory |
+| Space `<tab>` `]` / `[` | Next / previous Neovim tab page |
+| Space `<tab>` `<tab>` | Create a Neovim tab page |
+| Space `<tab>` d / l / f | Close / last / first Neovim tab page |
 | `[b` / `]b`, Space bd | Previous/next/delete buffer |
 | Ctrl-w v / s | Native code split vertically / horizontally |
 | Ctrl-hjkl | Navigate windows and tmux; insert mode exits to normal |
-| Space w / q | Write / quit with confirmation |
+| Ctrl-s | Save buffer |
 | Space y / Y / p | Copy selection/motion / line / paste local system clipboard |
 
 Start Neovim from the project root; finder cwd stays stable. Opening another file
@@ -79,26 +80,30 @@ does not silently `cd`. For a monorepo, narrow deliberately with `:lcd path`.
 
 | Key | Action |
 |---|---|
-| `gd` / `gD` / `gi` / `gy` | Definition / declaration / implementation / type |
+| `gd` / `gD` / `gI` / `gy` | Definition / declaration / implementation / type |
 | `K` | Hover documentation |
-| Space cr / ca / cs | Rename / code action / signature |
-| Space cf / cF | Format buffer/selection / toggle buffer format-on-save |
-| Space cl | Run non-LSP linter; Terraform runs project tflint explicitly |
-| Space cd / cq / co | Line diagnostic float / diagnostics to quickfix / open quickfix |
+| Space cr / ca / cl | Rename / code action / LSP information |
+| Space cf | Format buffer/selection |
+| Space uf / uF | Toggle global / current-buffer format-on-save |
+| Space cL | Run linter; Terraform runs project TFLint explicitly |
+| Space cd / xx / xq | Line diagnostic / diagnostics list / quickfix list |
 | `[d` / `]d` | Native previous/next diagnostic |
 | `[q` / `]q` | Previous/next quickfix result |
-| Space ch | Toggle inlay hints (if supported) |
+| Space uh | Toggle inlay hints |
 | `[h` / `]h` | Previous/next Git hunk |
-| Space gs / gp / gb | Stage / preview hunk / blame line |
-| Space gd / gD | Diff against index / HEAD |
-| Space gr | **Reset hunk, destructive** |
+| Space ghs / ghp / ghb | Stage / preview / blame hunk |
+| Space ghd / ghD | Diff against index / base |
+| Space ghr | **Reset hunk, destructive** |
 | `ih` | Git hunk text object |
 | `gcc` / visual `gc` | Native line / selection comment |
-| `sa` / `sd` / `sr` | mini.surround add / delete / replace |
+| `gsa` / `gsd` / `gsr` | mini.surround add / delete / replace |
 | `af` / `if`, `aa` / `ia` | mini.ai function-call / argument text objects |
-| Ctrl-space / Ctrl-y | Trigger completion / accept selected completion |
-| Ctrl-n / Ctrl-p | Completion next / previous (no Ctrl-j/k collision) |
-| Tab / Shift-Tab | Snippet next / previous placeholder |
+| Ctrl-space | Trigger completion menu |
+
+Inside mini.files, add a line to create an entry, edit a name to rename it, or
+cut/paste entries between directory columns to move them. Press `=` to review and
+confirm the queued operations. Deletes go to mini.files' trash, not permanent
+deletion. Use `g?` or `:help MiniFiles` for the full key reference.
 
 For Git branches/commits/rebase use **tmux prefix g** or shell **lg**.
 For PRs: `gh pr create`, `gh pr checkout N`, `gh pr checks`.

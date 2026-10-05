@@ -10,18 +10,17 @@ formatters. No blanket Ruff fix-all or Terraform apply on save.
 | Python | basedpyright + Ruff native server | Ruff organize imports, then Ruff format | basedpyright types; Ruff style/imports |
 | TypeScript / JavaScript | typescript-language-server; ESLint when config found | Prettier | ts_ls types; ESLint LSP for project rules |
 | JSON / JSONC | vscode-json-language-server | Prettier | JSON LS |
-| YAML | yaml-language-server, upstream schema catalog | Prettier | YAML LS + declared schema |
+| YAML | yaml-language-server, SchemaStore | Prettier | YAML LS + declared schema |
 | Bash / sh | bash-language-server | shfmt | ShellCheck via Bash LS |
 | Lua | lua-language-server | StyLua | Lua LS |
 | Terraform / tfvars | terraform-ls | terraform fmt | Terraform LS; manual tflint |
 | Dockerfile | dockerfile-language-server | None; keep manual layout | Docker LS + hadolint on save |
 | Markdown | Marksman | Prettier | markdownlint-cli2 on save |
 
-Servers only enable when executables are on PATH; missing tooling must be
-installed rather than silently fetched during editor startup. `:checkhealth vim.lsp`
-and `:ConformInfo` diagnose missing tools. Neovim's native `gc` commenting and
-Treesitter highlighting/folds apply across these languages. mini.ai handles
-bracket/quote/argument/function-call objects without another Treesitter text-object plugin.
+Mason is disabled: language servers and command-line tools are installed by
+Homebrew, uv, and pnpm, and should be on PATH before opening Neovim.
+`:checkhealth vim.lsp` and `:ConformInfo` diagnose missing tools. LazyVim supplies native `gc`
+commenting, Treesitter highlighting/folds, and mini.ai text objects.
 
 ## Python: uv projects
 
@@ -96,7 +95,7 @@ packages exist. Deno/Biome are project-specific alternatives, not parallel defau
 
 ## YAML / Kubernetes / DevOps
 
-The YAML server's own schema catalog avoids another SchemaStore plugin. Automatic
+LazyVim's YAML extra uses SchemaStore plus the YAML server's catalog. Automatic
 Kubernetes association is limited to `k8s*.yaml/yml`; do **not** label every YAML
 file as Kubernetes (that breaks workflows, Compose, CI, and Helm values). For
 other paths, use a file-level modeline or project-specific schema associations:
@@ -130,7 +129,7 @@ tflint
 terraform plan
 ```
 
-Only formatting is automatic. `Space cl` runs tflint in the selected project root
+Only formatting is automatic. `Space cL` runs tflint in the selected project root
 on demand; in a monorepo, use a module's lockfile/.tflint.hcl or run tflint in the
 module task window. No `apply`/`destroy` shortcuts; review plans and target workspace.
 Terraform is installed from HashiCorp's tap for the current official distribution,

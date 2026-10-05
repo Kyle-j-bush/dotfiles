@@ -1,97 +1,80 @@
 return {
+  -- LazyVim supports Mason, but this setup uses Homebrew, uv, and pnpm so the
+  -- same language tools are available outside the editor too.
+  { 'mason-org/mason.nvim', enabled = false },
+  { 'mason-org/mason-lspconfig.nvim', enabled = false },
   {
     'neovim/nvim-lspconfig',
-    event = { 'BufReadPre', 'BufNewFile' },
-    dependencies = { 'saghen/blink.cmp' },
-    config = function()
-      -- nvim-lspconfig supplies server definitions; native Neovim starts them.
-      vim.lsp.config('*', { capabilities = require('blink.cmp').get_lsp_capabilities() })
-      vim.lsp.config('basedpyright', {
-        settings = {
-          basedpyright = {
-            disableOrganizeImports = true, -- Ruff owns imports and style.
-            analysis = { diagnosticMode = 'openFilesOnly', typeCheckingMode = 'standard' },
-          },
-        },
-        before_init = function(_, config)
-          local root = config.root_dir
-          if root and vim.fn.executable(root .. '/.venv/bin/python') == 1 then
-            config.settings.python = { pythonPath = root .. '/.venv/bin/python' }
-          end
-        end,
-      })
-      vim.lsp.config('ruff', {
-        cmd = function(dispatchers, config)
-          local root = config.root_dir
-          local local_cmd = root and root .. '/.venv/bin/ruff'
-          local command = local_cmd and vim.fn.executable(local_cmd) == 1 and local_cmd or 'ruff'
-          return vim.lsp.rpc.start({ command, 'server' }, dispatchers)
-        end,
-      })
-      vim.lsp.config('lua_ls', {
-        settings = {
-          Lua = {
-            runtime = { version = 'LuaJIT' },
-            diagnostics = { globals = { 'vim' } },
-            workspace = { checkThirdParty = false, library = { vim.env.VIMRUNTIME } },
-            telemetry = { enable = false },
-          },
-        },
-      })
-      vim.lsp.config('yamlls', {
-        settings = {
-          yaml = {
-            keyOrdering = false,
-            schemaStore = { enable = true }, -- Upstream schema catalog, no SchemaStore plugin.
-            schemas = { kubernetes = 'k8s*.{yaml,yml}' }, -- Avoid treating all YAML as Kubernetes.
-          },
-        },
-      })
-      vim.lsp.config('bashls', { settings = { bashIde = { shellcheckPath = 'shellcheck' } } })
+    opts = function(_, opts)
       local servers = {
-        basedpyright = 'basedpyright-langserver',
-        ruff = 'ruff',
-        ts_ls = 'typescript-language-server',
-        jsonls = 'vscode-json-language-server',
-        yamlls = 'yaml-language-server',
-        bashls = 'bash-language-server',
-        lua_ls = 'lua-language-server',
-        terraformls = 'terraform-ls',
-        dockerls = 'docker-langserver',
-        marksman = 'marksman',
-        eslint = 'vscode-eslint-language-server',
+        basedpyright = {
+          mason = false,
+          settings = {
+            basedpyright = {
+              disableOrganizeImports = true,
+              analysis = { diagnosticMode = 'openFilesOnly', typeCheckingMode = 'standard' },
+            },
+          },
+          before_init = function(_, config)
+            local root = config.root_dir
+            local python = root and root .. '/.venv/bin/python'
+            if python and vim.fn.executable(python) == 1 then
+              config.settings.python = { pythonPath = python }
+            end
+          end,
+        },
+        ruff = {
+          mason = false,
+          cmd = function(dispatchers, config)
+            local root = config.root_dir
+            local local_ruff = root and root .. '/.venv/bin/ruff'
+            local command = local_ruff and vim.fn.executable(local_ruff) == 1 and local_ruff
+              or 'ruff'
+            return vim.lsp.rpc.start({ command, 'server' }, dispatchers)
+          end,
+        },
+        ts_ls = { mason = false },
+        eslint = { mason = false },
+        jsonls = { mason = false },
+        yamlls = {
+          mason = false,
+          settings = {
+            yaml = {
+              keyOrdering = false,
+              schemas = { kubernetes = 'k8s*.{yaml,yml}' },
+            },
+          },
+        },
+        bashls = {
+          mason = false,
+          settings = { bashIde = { shellcheckPath = 'shellcheck' } },
+        },
+        lua_ls = {
+          mason = false,
+          settings = {
+            Lua = {
+              runtime = { version = 'LuaJIT' },
+              diagnostics = { globals = { 'vim' } },
+              workspace = { checkThirdParty = false, library = { vim.env.VIMRUNTIME } },
+              telemetry = { enable = false },
+            },
+          },
+        },
+        terraformls = { mason = false },
+        dockerls = { mason = false },
+        docker_compose_language_service = { enabled = false },
+        marksman = { mason = false },
       }
-      for server, executable in pairs(servers) do
-        if vim.fn.executable(executable) == 1 then
-          vim.lsp.enable(server)
-        end
-      end
+
+      opts.servers = vim.tbl_deep_extend('force', opts.servers, servers)
     end,
   },
   {
     'stevearc/conform.nvim',
-    event = { 'BufWritePre' },
-    cmd = 'ConformInfo',
-    keys = {
-      {
-        '<leader>cf',
-        function()
-          require('conform').format({ async = true, lsp_format = 'never' })
-        end,
-        mode = { 'n', 'x' },
-        desc = 'Format buffer/selection',
-      },
-      {
-        '<leader>cF',
-        function()
-          vim.b.disable_autoformat = not vim.b.disable_autoformat
-          vim.notify('Format on save: ' .. (vim.b.disable_autoformat and 'off' or 'on'))
-        end,
-        desc = 'Toggle buffer format on save',
-      },
-    },
-    opts = {
-      formatters_by_ft = {
+    opts = function(_, opts)
+      opts.default_format_opts = opts.default_format_opts or {}
+      opts.default_format_opts.lsp_format = 'never'
+      opts.formatters_by_ft = vim.tbl_deep_extend('force', opts.formatters_by_ft or {}, {
         python = { 'ruff_organize_imports', 'ruff_format' },
         javascript = { 'prettier' },
         javascriptreact = { 'prettier' },
@@ -108,59 +91,42 @@ return {
         lua = { 'stylua' },
         terraform = { 'terraform_fmt' },
         ['terraform-vars'] = { 'terraform_fmt' },
-      },
-      format_on_save = function(buf)
-        if vim.b[buf].disable_autoformat or vim.bo[buf].buftype ~= '' then
-          return
-        end
-        if vim.api.nvim_buf_line_count(buf) > 20000 then
-          return
-        end
-        return { timeout_ms = 1500, lsp_format = 'never' }
-      end,
-      -- Conform's Prettier resolver prefers node_modules/.bin over PATH.
-      -- Ruff's project executable is similarly preferred when a uv venv exists.
-      formatters = {
-        ruff_format = {
+      })
+      opts.formatters = opts.formatters or {}
+      for _, name in ipairs({ 'ruff_format', 'ruff_organize_imports' }) do
+        opts.formatters[name] = {
           command = function(_, ctx)
             local root = vim.fs.root(ctx.filename, { 'pyproject.toml', '.git' })
-            local local_cmd = root and root .. '/.venv/bin/ruff'
-            return local_cmd and vim.fn.executable(local_cmd) == 1 and local_cmd or 'ruff'
+            local local_ruff = root and root .. '/.venv/bin/ruff'
+            return local_ruff and vim.fn.executable(local_ruff) == 1 and local_ruff or 'ruff'
           end,
-        },
-        ruff_organize_imports = {
-          command = function(_, ctx)
-            local root = vim.fs.root(ctx.filename, { 'pyproject.toml', '.git' })
-            local local_cmd = root and root .. '/.venv/bin/ruff'
-            return local_cmd and vim.fn.executable(local_cmd) == 1 and local_cmd or 'ruff'
-          end,
-        },
-      },
-    },
+        }
+      end
+    end,
   },
   {
     'mfussenegger/nvim-lint',
-    event = { 'BufReadPost', 'BufNewFile' },
-    config = function()
-      local lint = require('lint')
-      lint.linters_by_ft = { dockerfile = { 'hadolint' }, markdown = { 'markdownlint-cli2' } }
-      vim.api.nvim_create_autocmd('BufWritePost', {
-        group = vim.api.nvim_create_augroup('dotfiles-lint', { clear = true }),
-        callback = function()
-          if vim.bo.buftype == '' then
+    opts = function(_, opts)
+      opts.linters_by_ft = vim.tbl_deep_extend('force', opts.linters_by_ft or {}, {
+        dockerfile = { 'hadolint' },
+        markdown = { 'markdownlint-cli2' },
+      })
+    end,
+    keys = {
+      {
+        '<leader>cL',
+        function()
+          local lint = require('lint')
+          if vim.bo.filetype == 'terraform' or vim.bo.filetype == 'terraform-vars' then
+            local root = vim.fs.root(0, { '.terraform.lock.hcl', '.tflint.hcl', '.git' })
+              or vim.fn.getcwd()
+            lint.try_lint('tflint', { cwd = root })
+          else
             lint.try_lint()
           end
         end,
-      })
-      vim.keymap.set('n', '<leader>cl', function()
-        if vim.bo.filetype == 'terraform' or vim.bo.filetype == 'terraform-vars' then
-          local root = vim.fs.root(0, { '.terraform.lock.hcl', '.tflint.hcl', '.git' })
-            or vim.fn.getcwd()
-          lint.try_lint('tflint', { cwd = root }) -- Explicit, not on every Terraform save.
-        else
-          lint.try_lint()
-        end
-      end, { desc = 'Lint buffer (Terraform: project)' })
-    end,
+        desc = 'Lint buffer (Terraform: project)',
+      },
+    },
   },
 }

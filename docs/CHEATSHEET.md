@@ -99,6 +99,8 @@ does not silently `cd`. For a monorepo, narrow deliberately with `:lcd path`.
 | `gcc` / visual `gc` | Native line / selection comment |
 | `gsa` / `gsd` / `gsr` | mini.surround add / delete / replace |
 | `af` / `if`, `aa` / `ia` | mini.ai function-call / argument text objects |
+| Tab | Accept the selected completion; otherwise advance snippets or insert a tab |
+| Enter | Insert a newline without accepting a completion |
 | Ctrl-space | Trigger completion menu |
 
 Inside mini.files, add a line to create an entry, edit a name to rename it, or

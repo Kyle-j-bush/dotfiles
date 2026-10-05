@@ -74,6 +74,8 @@ is normally Fn-Up; **prefix [** is usually easier.
 | Ctrl-s | Save buffer |
 | Space y / Y / p | Copy selection/motion / line / paste local system clipboard |
 
+Command and search prompts use the classic bottom-left command line.
+
 Start Neovim from the project root; finder cwd stays stable. Opening another file
 does not silently `cd`. For a monorepo, narrow deliberately with `:lcd path`.
 

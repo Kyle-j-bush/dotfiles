@@ -1,5 +1,5 @@
-# No framework, no slow language-runtime managers at shell startup.
-typeset -U path PATH
+# Native zsh completion plus small, explicit plugins; no shell framework.
+typeset -U path PATH fpath
 [[ -d /opt/homebrew/bin ]] && path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
 export PNPM_HOME="$HOME/.local/share/pnpm"
 path=("$HOME/.local/bin" "$HOME/.local/share/devtools/node/node_modules/.bin" "$PNPM_HOME/bin" "$PNPM_HOME" $path)
@@ -12,6 +12,15 @@ SAVEHIST=100000
 setopt EXTENDED_HISTORY SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE INTERACTIVE_COMMENTS AUTO_CD
 bindkey -e
+# Add supplemental completion definitions before compinit. The distro paths
+# keep the config useful on Linux without requiring Homebrew there.
+for completion_dir in \
+  "${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-completions" \
+  /usr/share/zsh-completions \
+  /usr/share/zsh/site-functions \
+  /usr/share/zsh/vendor-completions; do
+  [[ -d "$completion_dir" ]] && fpath=("$completion_dir" $fpath)
+done
 autoload -Uz compinit
 # compinit reuses its dump and still checks completion-path security.
 compinit
@@ -56,4 +65,22 @@ else
 fi
 # Host-specific settings/credentials stay untracked and load last.
 [[ -f "$HOME/.config/zsh/local.zsh" ]] && source "$HOME/.config/zsh/local.zsh"
+# History-based suggestions: accept the ghost text with the right arrow.
+for plugin in \
+  "${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; do
+  if [[ -r "$plugin" ]]; then
+    source "$plugin"
+    break
+  fi
+done
+# Keep syntax highlighting last so it can wrap all configured ZLE widgets.
+for plugin in \
+  "${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+  if [[ -r "$plugin" ]]; then
+    source "$plugin"
+    break
+  fi
+done
 # Deliberately do NOT auto-attach: Ctrl-f chooses a project; SSH stays predictable.

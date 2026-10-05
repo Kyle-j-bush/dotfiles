@@ -61,7 +61,7 @@ Git identity is private, per-machine: see [installation](docs/INSTALL.md).
 | Ghostty | Font/rendering, OS windows, Option key, Command copy/paste | Project tabs, splits, sessions |
 | tmux | Project sessions, task windows, process panes, terminal scrollback, persistence | Editing, repository file search |
 | Neovim + LazyVim | Editing, code splits, LSP, diagnostics, hunks, Snacks file/search picker | Background services, terminal layouts, full Git UI |
-| zsh + Starship | Commands, history, completion, PATH, styled prompt | Automatic tmux attach, a shell framework |
+| zsh + Starship | Commands, history, completion, suggestions, highlighting, styled prompt | Automatic tmux attach, a shell framework |
 | fzf | Fast shell/project picking | Another project database |
 | fd / rg | File discovery / text search for the shell and editor picker | Persistent indexing or hidden global state |
 | zoxide | Frequently visited shell directories (`z`, `zi`) | tmux session identity |
@@ -125,6 +125,11 @@ Starship provides a compact two-line prompt with a truncated working directory,
 Git branch/status, and long-command duration. Over SSH it also shows the remote
 user and host. Edit `starship/starship.toml`; the prompt uses ordinary text/color
 styles and does not require a Nerd Font.
+
+Shell interaction stays on native zsh completion, extended by `zsh-completions`.
+`zsh-autosuggestions` offers history-based ghost text (press Right Arrow to accept),
+and `zsh-syntax-highlighting` colors commands as you type. These are small,
+separately packaged plugins rather than a full Oh My Zsh framework.
 
 ## Chosen plugins and tradeoffs
 

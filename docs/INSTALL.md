@@ -24,7 +24,8 @@ brew tap hashicorp/tap
 brew tap terraform-linters/tap
 # Newer Homebrew may require this explicit, formula-scoped trust decision:
 brew trust --formula hashicorp/tap/terraform
-brew install git gh tmux neovim fzf ripgrep fd zoxide lazygit starship node pnpm \
+brew install git gh tmux neovim fzf ripgrep fd zoxide lazygit starship \
+  zsh-autosuggestions zsh-completions zsh-syntax-highlighting node pnpm \
   uv ruff shellcheck shfmt stylua lua-language-server marksman tree-sitter-cli \
   hashicorp/tap/terraform terraform-ls hadolint jq yq \
   docker docker-compose colima kubernetes-cli kubectx helm k9s
@@ -49,6 +50,11 @@ the current `ts_ls` JavaScript server requires TypeScript <7. Each project can p
 its own compatible TypeScript/LSP versions. This is not a Node-version manager;
 if a project requires a particular Node release, use an explicit runtime strategy
 such as a container or mise later, rather than silently changing Node here.
+
+If zsh reports insecure completion directories, inspect them with `compaudit`.
+For Homebrew's shared directory, remove group/other write permission only when it
+is reported: `chmod go-w "$(brew --prefix)/share"`. Keep `compinit`'s security
+check enabled rather than bypassing it.
 
 Installation downloads software but **does not** start Colima, Docker, Kubernetes,
 launch agents, log-in tmux, or a project process. For containers when needed:
@@ -120,7 +126,8 @@ Example Ubuntu/Debian base (availability/versions vary):
 
 ```sh
 sudo apt update
-sudo apt install git tmux zsh fzf ripgrep fd-find curl tar build-essential \
+sudo apt install git tmux zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting \
+  fzf ripgrep fd-find curl tar build-essential \
   jq shellcheck wl-clipboard ncurses-bin
 mkdir -p ~/.local/bin
 ln -s "$(command -v fdfind)" ~/.local/bin/fd
@@ -187,8 +194,9 @@ routing or clipboard access.
   use project lockfiles/container images; don't claim Homebrew is hermetic.
 - Update formatters as a team and pin them per project to prevent noisy diffs.
 
-The shell uses zsh's native completion and Starship's prompt; it has no large
-shell framework or autosuggestions/highlighting plugins. Installed tools need not
-all run at startup. Keep work and production kube contexts visible in command
+The shell uses native zsh completion with optional `zsh-completions`,
+`zsh-autosuggestions`, and `zsh-syntax-highlighting`; these standalone plugins do
+not add a framework or plugin manager. Installed tools need not all run at startup.
+Keep work and production kube contexts visible in command
 output and confirm target context before making changes; do not create dangerous
 shortcuts.

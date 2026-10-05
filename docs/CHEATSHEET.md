@@ -14,6 +14,7 @@ terminal/editor bindings use Control/Meta.
 | Ctrl-r | fzf shell command history |
 | Ctrl-t | Insert chosen file path into shell command |
 | Option-c (left Option) | fzf change directory |
+| Right Arrow | Accept the zsh history suggestion, when shown |
 | Cmd-c / Cmd-v | Ghostty selection copy / terminal paste |
 
 ## tmux

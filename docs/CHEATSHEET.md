@@ -74,6 +74,8 @@ is normally Fn-Up; **prefix [** is usually easier.
 | Ctrl-s | Save buffer |
 | Space y / Y / p | Copy selection/motion / line / paste local system clipboard |
 
+Command and search prompts use the classic bottom-left command line.
+
 Start Neovim from the project root; finder cwd stays stable. Opening another file
 does not silently `cd`. For a monorepo, narrow deliberately with `:lcd path`.
 
@@ -99,6 +101,8 @@ does not silently `cd`. For a monorepo, narrow deliberately with `:lcd path`.
 | `gcc` / visual `gc` | Native line / selection comment |
 | `gsa` / `gsd` / `gsr` | mini.surround add / delete / replace |
 | `af` / `if`, `aa` / `ia` | mini.ai function-call / argument text objects |
+| Tab | Accept the selected completion; otherwise advance snippets or insert a tab |
+| Enter | Insert a newline without accepting a completion |
 | Ctrl-space | Trigger completion menu |
 
 Inside mini.files, add a line to create an entry, edit a name to rename it, or

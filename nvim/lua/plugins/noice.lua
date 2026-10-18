@@ -2,6 +2,9 @@ return {
   {
     'folke/noice.nvim',
     opts = function(_, opts)
+      opts.cmdline = opts.cmdline or {}
+      opts.cmdline.view = 'cmdline' -- Keep command input on the classic bottom row.
+
       opts.routes = opts.routes or {}
       -- BasedPyright emits this short-lived status after each edit; keep other LSP progress.
       table.insert(opts.routes, 1, {
